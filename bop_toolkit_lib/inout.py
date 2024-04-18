@@ -255,35 +255,52 @@ def load_bop_results(path, version="bop19"):
     # See docs/bop_challenge_2019.md for details.
     if version == "bop19":
         header = "scene_id,im_id,obj_id,score,R,t,time"
+        header_K = "scene_id,im_id,obj_id,score,R,t,K,time"
         with open(path, "r") as f:
             line_id = 0
             for line in f:
                 line_id += 1
-                if line_id == 1 and header in line:
+                if line_id == 1 and (header in line or header_K in line):
                     continue
                 else:
                     elems = line.split(",")
-                    if len(elems) != 7:
+                    if len(elems) == 7:
+                        result = {
+                            "scene_id": int(elems[0]),
+                            "im_id": int(elems[1]),
+                            "obj_id": int(elems[2]),
+                            "score": float(elems[3]),
+                            "R": np.array(
+                                list(map(float, elems[4].split())), np.float64
+                            ).reshape((3, 3)),
+                            "t": np.array(
+                                list(map(float, elems[5].split())), np.float64
+                            ).reshape((3, 1)),
+                            "time": float(elems[6]),
+                        }
+                    elif len(elems) == 8:
+                        result = {
+                            "scene_id": int(elems[0]),
+                            "im_id": int(elems[1]),
+                            "obj_id": int(elems[2]),
+                            "score": float(elems[3]),
+                            "R": np.array(
+                                list(map(float, elems[4].split())), np.float64
+                            ).reshape((3, 3)),
+                            "t": np.array(
+                                list(map(float, elems[5].split())), np.float64
+                            ).reshape((3, 1)),
+                            "K" : np.array(
+                                list(map(float, elems[6].split())), np.float64
+                            ).reshape((3, 3)),
+                            "time": float(elems[7]),
+                        }
+                    else:
                         raise ValueError(
-                            "A line does not have 7 comma-sep. elements: {}".format(
+                            "A line does not have 7 nor 8 comma-sep. elements: {}".format(
                                 line
                             )
                         )
-
-                    result = {
-                        "scene_id": int(elems[0]),
-                        "im_id": int(elems[1]),
-                        "obj_id": int(elems[2]),
-                        "score": float(elems[3]),
-                        "R": np.array(
-                            list(map(float, elems[4].split())), np.float64
-                        ).reshape((3, 3)),
-                        "t": np.array(
-                            list(map(float, elems[5].split())), np.float64
-                        ).reshape((3, 1)),
-                        "time": float(elems[6]),
-                    }
-
                     results.append(result)
     else:
         raise ValueError("Unknown version of BOP results.")

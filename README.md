@@ -1,4 +1,5 @@
 # BOP Toolkit
+**This is patched version of BOP Toolkit used for [FocalPose++](https://github.com/cifkam/FocalPosePP) evaluation. The pose evaluation scripts accept CSV in `scene_id,im_id,obj_id,score,R,t,K,time` format, i.e. with added K matrix prediction, allowing evaluation of MSPD (and possibly VSD) even with different projection matrix.**
 
 A Python toolkit of the BOP benchmark for 6D object pose estimation
 (http://bop.felk.cvut.cz).
