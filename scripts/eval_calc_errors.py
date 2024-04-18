@@ -286,6 +286,8 @@ for result_filename in p["result_filenames"]:
                     # Estimated pose.
                     R_e = est["R"]
                     t_e = est["t"]
+                    K_e = est["K"] if "K" in est else K
+
 
                     errs = {}  # Errors w.r.t. GT poses of the same object class.
                     for gt_id, gt in enumerate(scene_gt[im_id]):
@@ -323,6 +325,7 @@ for result_filename in p["result_filenames"]:
                                 e = pose_error.vsd(
                                     R_e,
                                     t_e,
+                                    K_e,
                                     R_g,
                                     t_g,
                                     depth_im,
@@ -356,6 +359,7 @@ for result_filename in p["result_filenames"]:
                                 pose_error.mspd(
                                     R_e,
                                     t_e,
+                                    K_e,
                                     R_g,
                                     t_g,
                                     K,

@@ -17,10 +17,11 @@ from bop_toolkit_lib import visibility
 def vsd(
     R_est,
     t_est,
+    K_est,
     R_gt,
     t_gt,
     depth_test,
-    K,
+    K_gt,
     delta,
     taus,
     normalized_by_diameter,
@@ -51,14 +52,15 @@ def vsd(
     :return: List of calculated errors (one for each misalignment tolerance).
     """
     # Render depth images of the model in the estimated and the ground-truth pose.
-    fx, fy, cx, cy = K[0, 0], K[1, 1], K[0, 2], K[1, 2]
-    depth_est = renderer.render_object(obj_id, R_est, t_est, fx, fy, cx, cy)["depth"]
-    depth_gt = renderer.render_object(obj_id, R_gt, t_gt, fx, fy, cx, cy)["depth"]
+    fx_gt, fy_gt, cx_gt, cy_gt = K_gt[0, 0], K_gt[1, 1], K_gt[0, 2], K_gt[1, 2]
+    fx_est, fy_est, cx_est, cy_est = K_est[0, 0], K_est[1, 1], K_est[0, 2], K_est[1, 2]
+    depth_est = renderer.render_object(obj_id, R_est, t_est, fx_est, fy_est, cx_est, cy_est)["depth"]
+    depth_gt = renderer.render_object(obj_id, R_gt, t_gt, fx_gt, fy_gt, cx_gt, cy_gt)["depth"]
 
     # Convert depth images to distance images.
-    dist_test = misc.depth_im_to_dist_im_fast(depth_test, K)
-    dist_gt = misc.depth_im_to_dist_im_fast(depth_gt, K)
-    dist_est = misc.depth_im_to_dist_im_fast(depth_est, K)
+    dist_test = misc.depth_im_to_dist_im_fast(depth_test, K_gt)
+    dist_gt = misc.depth_im_to_dist_im_fast(depth_gt, K_gt)
+    dist_est = misc.depth_im_to_dist_im_fast(depth_est, K_est)
 
     # Visibility mask of the model in the ground-truth pose.
     visib_gt = visibility.estimate_visib_mask_gt(
@@ -130,7 +132,7 @@ def mssd(R_est, t_est, R_gt, t_gt, pts, syms):
     return min(es)
 
 
-def mspd(R_est, t_est, R_gt, t_gt, K, pts, syms):
+def mspd(R_est, t_est, K_est, R_gt, t_gt, K_gt, pts, syms):
     """Maximum Symmetry-Aware Projection Distance (MSPD).
 
     See: http://bop.felk.cvut.cz/challenges/bop-challenge-2019/
@@ -146,12 +148,12 @@ def mspd(R_est, t_est, R_gt, t_gt, K, pts, syms):
       - 't': 3x1 ndarray with the translation vector.
     :return: The calculated error.
     """
-    proj_est = misc.project_pts(pts, K, R_est, t_est)
+    proj_est = misc.project_pts(pts, K_est, R_est, t_est)
     es = []
     for sym in syms:
         R_gt_sym = R_gt.dot(sym["R"])
         t_gt_sym = R_gt.dot(sym["t"]) + t_gt
-        proj_gt_sym = misc.project_pts(pts, K, R_gt_sym, t_gt_sym)
+        proj_gt_sym = misc.project_pts(pts, K_gt, R_gt_sym, t_gt_sym)
         es.append(np.linalg.norm(proj_est - proj_gt_sym, axis=1).max())
     return min(es)
 
